@@ -44,12 +44,12 @@ public class Conexion
         return locales;
     }
 
-    public ArrayList<HistorialVisitante> getHistorialesVisitante() throws SQLException
+    public ArrayList<HistorialVisitante> getHistorialesVisitante(String sql) throws SQLException
     {
         ArrayList<HistorialVisitante> historiales = new ArrayList<>();
 
         // Crea el objeto para ejecutar sentencias
-        OraclePreparedStatement stmt = (OraclePreparedStatement) con.prepareStatement("SELECT h.identificacion, t.column_value AS trayectorias FROM historial_visitante h, TABLE(h.trayectorias) t ORDER BY h.identificacion",
+        OraclePreparedStatement stmt = (OraclePreparedStatement) con.prepareStatement(sql,
                 ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
 
         OracleResultSet rs = (OracleResultSet) stmt.executeQuery();
