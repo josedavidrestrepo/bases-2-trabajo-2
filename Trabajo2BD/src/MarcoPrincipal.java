@@ -39,12 +39,21 @@ public class MarcoPrincipal extends JFrame {
 
     private class CentroComercial extends JPanel
     {
+        private ArrayList<Local> locales;
 
         public CentroComercial()
         {
             setPreferredSize(new Dimension(640, 640));
             setMaximumSize(new Dimension(640, 640));
             setMinimumSize(new Dimension(640, 640));
+
+            try {
+                Conexion c = new Conexion("jdbc:oracle:thin:@localhost:1521:xe","Bases_II","bases2015");
+                locales = c.getLocales();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
         }
 
         @Override
@@ -64,7 +73,7 @@ public class MarcoPrincipal extends JFrame {
             try
             {
                 c = new Conexion("jdbc:oracle:thin:@localhost:1521:xe","Bases_II","bases2015");
-                for (Local l : c.getLocales())
+                for (Local l : locales)
                 {
                     int x = (l.getCoordenadas().getX1()*escalaX)+25;
                     int y = (l.getCoordenadas().getY1()*escalaY)+25;
@@ -84,21 +93,12 @@ public class MarcoPrincipal extends JFrame {
                     g.drawLine(j, 0 , j, height);
                 }
 
-                String sql = null;
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setStroke(new BasicStroke(3));
 
                 if (opcion.getOpcion() == Opciones.TrayectoriasPorID)
                 {
-                    sql = "SELECT h.identificacion, t.column_value AS trayectorias " +
-                            "FROM historial_visitante h, TABLE(h.trayectorias) t " +
-                            "WHERE h.identificacion = " + opcion.getValor() +
-                            " ORDER BY h.identificacion";
-                }
-
-                if (sql != null)
-                {
-                    Graphics2D g2 = (Graphics2D) g;
-                    g2.setStroke(new BasicStroke(3));
-                    for (HistorialVisitante h : c.getHistorialesVisitante(sql))
+                    for (HistorialVisitante h : c.getHistorialesVisitante(opcion.getValor()))
                     {
                         for (Trayectoria t : h.getTrayectorias())
                         {
@@ -111,16 +111,29 @@ public class MarcoPrincipal extends JFrame {
                                 int y2 = (puntos.get(i).getY() * escalaY) + 25;
                                 g2.setColor(h.getColor());
                                 g2.drawLine(x1,y1,x2,y2);
+
+                                if (i == 1) g.drawString("" + t.getCategoriaPromedio(), x1, y1);
                             }
                         }
                     }
                 }
+
+                if (opcion.getOpcion() == Opciones.MayorCategoriaPromedio)
+                {
+                }
+
+                if (opcion.getOpcion() == Opciones.ParejaDeTrayectorias)
+                {
+                }
+
+                if (opcion.getOpcion() == Opciones.Problema)
+                {
+                }
             }
-            catch (SQLException e)
+            catch (Exception e)
             {
-                JOptionPane.showMessageDialog(null,e.getMessage());
+                System.err.println(e);
             }
-            catch (NullPointerException e){ }
 
             g.setColor(Color.BLACK);
             for (int i = 10; i <= 100; i+=10)
@@ -134,29 +147,64 @@ public class MarcoPrincipal extends JFrame {
     private class PanelOpciones extends JPanel
     {
         JButton buscarPorIdentificacion;
+        JButton buscarMayorCategoriaPromedio;
+        JButton buscarLocalesEnComun;
+        JButton cuartoProblema;
 
         public PanelOpciones() {
 
-            buscarPorIdentificacion = new JButton("Trayectorias por ID");
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
+            buscarPorIdentificacion = new JButton("Trayectorias por visitante");
             buscarPorIdentificacion.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-
                     String id = null;
                     try {
-                        id = JOptionPane.showInputDialog(null,"Ingrese una identificación","Buscar por ID", JOptionPane.QUESTION_MESSAGE,null,null,null).toString();
+                        id = JOptionPane.showInputDialog(null,"Ingrese la identificación de un visitante","Trayectorias por visitante", JOptionPane.QUESTION_MESSAGE,null,null,null).toString();
                     } catch (NullPointerException ex) { }
 
                     setOpcion(new Opcion(Opciones.TrayectoriasPorID,id));
-
                 }
             });
+            add(buscarPorIdentificacion);
 
-            add(buscarPorIdentificacion, BorderLayout.CENTER);
+            buscarMayorCategoriaPromedio = new JButton("Trayectorias con mayor categoría promedio");
+            buscarMayorCategoriaPromedio.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String n = null;
+                    try {
+                        n = JOptionPane.showInputDialog(null,"Ingrese un número de trayectorias","Trayectorias con mayor categoría promedio", JOptionPane.QUESTION_MESSAGE,null,null,null).toString();
+                    } catch (NullPointerException ex) { }
+                    setOpcion(new Opcion(Opciones.MayorCategoriaPromedio,n));
+                }
+            });
+            add(buscarMayorCategoriaPromedio);
+
+            buscarLocalesEnComun = new JButton("Pareja de trayectorias con locales en común");
+            buscarLocalesEnComun.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JOptionPane.showMessageDialog(null,"Pareja de trayectorias");
+                    setOpcion(new Opcion(Opciones.ParejaDeTrayectorias,""));
+                }
+            });
+            add(buscarLocalesEnComun);
+
+            cuartoProblema = new JButton("Cuarto problema");
+            cuartoProblema.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JOptionPane.showMessageDialog(null,"Cuarto problema");
+                    setOpcion(new Opcion(Opciones.Problema,""));
+                }
+            });
+            add(cuartoProblema);
+
+            pack();
 
         }
-
 
     }
 

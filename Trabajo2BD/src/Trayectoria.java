@@ -14,4 +14,9 @@ public class Trayectoria {
     public ArrayList<Punto> getPuntos() {
         return puntos;
     }
+
+    public double getCategoriaPromedio()
+    {
+        return 0.0;
+    }
 }
