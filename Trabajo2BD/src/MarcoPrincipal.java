@@ -81,6 +81,7 @@ public class MarcoPrincipal extends JFrame {
                     int h = (l.getCoordenadas().getY2()-l.getCoordenadas().getY1())*escalaY;
                     g.setColor(l.getColor());
                     g.fillRect(x, y, w, h);
+                    g.drawString(String.valueOf(l.getCategoria()),x,y);
                 }
 
                 g.setColor(Color.LIGHT_GRAY);
@@ -98,7 +99,7 @@ public class MarcoPrincipal extends JFrame {
 
                 if (opcion.getOpcion() == Opciones.TrayectoriasPorID)
                 {
-                    for (HistorialVisitante h : c.getHistorialesVisitante(opcion.getValor()))
+                    for (HistorialVisitante h : c.getHistorialesVisitante(opcion.getValor(),locales))
                     {
                         for (Trayectoria t : h.getTrayectorias())
                         {
@@ -120,6 +121,13 @@ public class MarcoPrincipal extends JFrame {
 
                 if (opcion.getOpcion() == Opciones.MayorCategoriaPromedio)
                 {
+                    for (HistorialVisitante h : c.getHistorialesVisitante(null,locales))
+                    {
+                        for (Trayectoria t : h.getTrayectorias())
+                        {
+                            t.getCategoriaPromedio();
+                        }
+                    }
                 }
 
                 if (opcion.getOpcion() == Opciones.ParejaDeTrayectorias)

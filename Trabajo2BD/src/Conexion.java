@@ -44,7 +44,7 @@ public class Conexion
         return locales;
     }
 
-    public ArrayList<HistorialVisitante> getHistorialesVisitante(String id) throws SQLException
+    public ArrayList<HistorialVisitante> getHistorialesVisitante(String id, ArrayList<Local> locales) throws SQLException
     {
         ArrayList<HistorialVisitante> historiales = new ArrayList<>();
 
@@ -79,7 +79,7 @@ public class Conexion
                 puntos.add(p);
             }
 
-            Trayectoria t = new Trayectoria(puntos);
+            Trayectoria t = new Trayectoria(puntos, locales);
 
             if (rs.getInt("identificacion") != idActual)
             {
