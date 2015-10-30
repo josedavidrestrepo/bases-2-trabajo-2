@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Jos� David on 07/10/2015.
@@ -70,9 +71,13 @@ public class MarcoPrincipal extends JFrame {
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, width, height);
 
+
             try
             {
                 c = new Conexion("jdbc:oracle:thin:@localhost:1521:xe","Bases_II","bases2015");
+
+                Font aux = getFont();
+                g.setFont(new Font("default", Font.BOLD, 12));
                 for (Local l : locales)
                 {
                     int x = (l.getCoordenadas().getX1()*escalaX)+25;
@@ -81,8 +86,10 @@ public class MarcoPrincipal extends JFrame {
                     int h = (l.getCoordenadas().getY2()-l.getCoordenadas().getY1())*escalaY;
                     g.setColor(l.getColor());
                     g.fillRect(x, y, w, h);
-                    g.drawString(String.valueOf(l.getCategoria()),x,y);
+                    g.setColor(Color.BLACK);
+                    g.drawString(String.valueOf(l.getNombre() + " " + l.getCategoria()),(x + w/2) - 10,(y + h/2) + 2);
                 }
+                g.setFont(aux);
 
                 g.setColor(Color.LIGHT_GRAY);
                 for(int i = 25; i < height; i+=(height-50)/10)
@@ -113,7 +120,7 @@ public class MarcoPrincipal extends JFrame {
                                 g2.setColor(h.getColor());
                                 g2.drawLine(x1,y1,x2,y2);
 
-                                if (i == 1) g.drawString("" + t.getCategoriaPromedio(), x1, y1);
+                                if (i == 1) g.drawString(String.format("%.2f", t.getCategoriaPromedio()), x1, y1);
                             }
                         }
                     }
@@ -121,21 +128,86 @@ public class MarcoPrincipal extends JFrame {
 
                 if (opcion.getOpcion() == Opciones.MayorCategoriaPromedio)
                 {
+                    ArrayList<Trayectoria> trayectorias = new ArrayList<>();
                     for (HistorialVisitante h : c.getHistorialesVisitante(null,locales))
                     {
                         for (Trayectoria t : h.getTrayectorias())
                         {
-                            t.getCategoriaPromedio();
+                            trayectorias.add(t);
+                        }
+                    }
+                    Collections.sort(trayectorias,Collections.reverseOrder());
+
+                    int n = Integer.valueOf(opcion.getValor());
+
+                    g2.setColor(Color.black);
+                    for(int i = 0; i < n && i < trayectorias.size(); i++)
+                    {
+                        Trayectoria t = trayectorias.get(i);
+                        ArrayList<Punto> puntos = t.getPuntos();
+                        for (int j = 1; j < puntos.size(); j++)
+                        {
+                            int x1 = (puntos.get(j-1).getX() * escalaX) + 25;
+                            int y1 = (puntos.get(j-1).getY() * escalaY) + 25;
+                            int x2 = (puntos.get(j).getX() * escalaX) + 25;
+                            int y2 = (puntos.get(j).getY() * escalaY) + 25;
+                            g2.drawLine(x1,y1,x2,y2);
+
+                            if (j == 1) g.drawString(String.format("%.2f", t.getCategoriaPromedio()), x1, y1);
                         }
                     }
                 }
 
                 if (opcion.getOpcion() == Opciones.ParejaDeTrayectorias)
                 {
+                    ArrayList<Trayectoria> trayectorias = new ArrayList<>();
+                    for (HistorialVisitante h : c.getHistorialesVisitante(null,locales))
+                    {
+                        for (Trayectoria t : h.getTrayectorias())
+                        {
+                            trayectorias.add(t);
+                        }
+                    }
+
+                    ArrayList<ParejaDeTrayectorias> parejasDeTrayectorias = new ArrayList<>();
+                    for (int i = 0; i < trayectorias.size() - 1; i++)
+                    {
+                        for (int j = i+1; j < trayectorias.size(); j++)
+                        {
+                            parejasDeTrayectorias.add(new ParejaDeTrayectorias(trayectorias.get(i), trayectorias.get(j)));
+                        }
+                    }
+
+                    ParejaDeTrayectorias p = Collections.max(parejasDeTrayectorias);
+
+                    ArrayList<Punto> puntos = p.getT1().getPuntos();
+                    for (int j = 1; j < puntos.size(); j++)
+                    {
+                        int x1 = (puntos.get(j-1).getX() * escalaX) + 25;
+                        int y1 = (puntos.get(j-1).getY() * escalaY) + 25;
+                        int x2 = (puntos.get(j).getX() * escalaX) + 25;
+                        int y2 = (puntos.get(j).getY() * escalaY) + 25;
+                        g2.drawLine(x1,y1,x2,y2);
+
+                        if (j == 1) g.drawString(String.format("%.2f", p.getT1().getCategoriaPromedio()), x1, y1);
+                    }
+
+                    puntos = p.getT2().getPuntos();
+                    for (int j = 1; j < puntos.size(); j++)
+                    {
+                        int x1 = (puntos.get(j-1).getX() * escalaX) + 25;
+                        int y1 = (puntos.get(j-1).getY() * escalaY) + 25;
+                        int x2 = (puntos.get(j).getX() * escalaX) + 25;
+                        int y2 = (puntos.get(j).getY() * escalaY) + 25;
+                        g2.drawLine(x1,y1,x2,y2);
+
+                        if (j == 1) g.drawString(String.format("%.2f", p.getT2().getCategoriaPromedio()), x1, y1);
+                    }
                 }
 
                 if (opcion.getOpcion() == Opciones.Problema)
                 {
+
                 }
             }
             catch (Exception e)
@@ -194,7 +266,6 @@ public class MarcoPrincipal extends JFrame {
             buscarLocalesEnComun.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    JOptionPane.showMessageDialog(null,"Pareja de trayectorias");
                     setOpcion(new Opcion(Opciones.ParejaDeTrayectorias,""));
                 }
             });

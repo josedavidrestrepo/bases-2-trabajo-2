@@ -4,18 +4,17 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 /**
- * Created by José David on 09/10/2015.
+ * Created by Josï¿½ David on 09/10/2015.
  */
-public class Trayectoria {
+public class Trayectoria implements Comparable{
 
     private ArrayList<Punto> puntos;
-    private Double categoriaPromedio;
+    private ArrayList<Local> localesVisitados;
 
     public Trayectoria(ArrayList<Punto> puntos, ArrayList<Local> locales) {
         this.puntos = puntos;
 
-        double totalCategorias = 0;
-        double totalAtravesados = 0;
+        localesVisitados = new ArrayList<>();
 
         for(Local l : locales)
         {
@@ -25,7 +24,7 @@ public class Trayectoria {
             Line2D bordeInferior = new Line2D(c.getX1(),c.getY2(),c.getX2(),c.getY2());
             Line2D bordeDerecho = new Line2D(c.getX2(),c.getY1(),c.getX2(),c.getY2());
 
-            int intersecciones = 0;
+            ArrayList<Point2D> points = new ArrayList<>();
 
             for (int i = 1; i < puntos.size(); i++)
             {
@@ -41,13 +40,10 @@ public class Trayectoria {
                 {
                     if (segmento.intersectsLine(bordeSuperior) || segmento.intersectsLine(bordeInferior)) continue;
                 }
-                if (pendiente == Double.POSITIVE_INFINITY)
+                if (pendiente == Double.POSITIVE_INFINITY || pendiente == Double.NEGATIVE_INFINITY)
                 {
                     if (segmento.intersectsLine(bordeIzquierdo) || segmento.intersectsLine(bordeDerecho)) continue;
                 }
-
-                ArrayList<Point2D> points = new ArrayList<>();
-
                 if (segmento.intersectsLine(bordeSuperior))
                 {
                     Point2D p = Utilidades.getLineLineIntersection(segmento, bordeSuperior);
@@ -63,7 +59,6 @@ public class Trayectoria {
                     {
                         points.add(p);
                     }
-
                 }
                 if (segmento.intersectsLine(bordeInferior))
                 {
@@ -81,18 +76,14 @@ public class Trayectoria {
                         points.add(p);
                     }
                 }
-                intersecciones += points.size();
 
-                if (intersecciones >= 2)
+                if (points.size() >= 2)
                 {
-                    totalAtravesados++;
-                    totalCategorias += l.getCategoria();
+                    localesVisitados.add(l);
                     break;
                 }
             }
         }
-
-        categoriaPromedio = totalAtravesados != 0 ? totalCategorias / totalAtravesados : 0.0;
     }
 
     public ArrayList<Punto> getPuntos() {
@@ -100,6 +91,28 @@ public class Trayectoria {
     }
 
     public Double getCategoriaPromedio() {
-        return categoriaPromedio;
+
+        Double totalCategorias = 0.0;
+        for (Local l : localesVisitados)
+        {
+            totalCategorias += l.getCategoria();
+        }
+
+        return localesVisitados.size() != 0 ? totalCategorias / localesVisitados.size() : 0.0;
+    }
+
+    public ArrayList<Local> getLocalesVisitados() {
+        return localesVisitados;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (o instanceof Trayectoria) {
+            Trayectoria t = (Trayectoria) o;
+            Double diferencia = this.getCategoriaPromedio() - t.getCategoriaPromedio();
+            if (diferencia < 0) return -1;
+            if (diferencia > 0) return 1;
+        }
+        return 0;
     }
 }
